@@ -1,13 +1,26 @@
+#from os import system
+
+#system("pip install -r .\Requirements.txt")
+
+# Python Standard Library
 from collections import OrderedDict
+from copy import deepcopy
+
+# Requirements
 from networkx import nx
 import matplotlib.pyplot as plt
-import pylab
+from matplotlib import pylab
 
-fin = open("GroupSW.txt")
+#filename = input("Please enter the filename: ")
+#fin = open(filename)
+fin = open("group1.txt")
 
 peopleNumbers = OrderedDict()
 peopleUnvisited = OrderedDict()
 n = 0
+
+#m = int(input("Please enter the ideal group size: "))
+
 m = 4
 
 G = nx.DiGraph()
@@ -45,206 +58,112 @@ fig = pylab.figure()
 
 def animate_edge(host, guest):
     fig.clear()
-    G.add_edge(hostName, guestName)
+    G.add_edge(host, guest)
     nx.draw_circular(G, with_labels=True)
-    nx.draw_networkx_edges(G, pos, edgelist=[(host, guest)], edge_color='g', width=5)
+    nx.draw_networkx_edges(G, pos, edgelist=[(host, guest)],
+                           edge_color='g', width=5,
+                           node_color=range(24), cmap=plt.cm.Blues)
+    print(G.number_of_edges())
     fig.canvas.draw()
     pylab.draw()
-    plt.pause(1)
+    #plt.pause(0.1)
 
 numGroups = n // m
+
+def intersection(lst1, lst2): 
+    return list(set(lst1) & set(lst2))
+
 superList = []
-hostOffset = 0
+
 hostNames = []
-
-# Run first iteration
-iteration = [[]]
-superList.append(iteration)
-for j in range(numGroups):
-    hostIndex = j
-    host = list(peopleNumbers.items())[hostIndex]
-    hostName = host[0]
-    hostNumber = host[1]
-    iteration.append([hostName])
-    # Initialize group sizes to zero
-    iteration[0].append(hostNumber)
-
-# Add guests
-nextGuestIndex = numGroups
-
-# While there are still unmatched guests
-while nextGuestIndex < len(list(peopleNumbers.items())):
-    # Select next guest
-    guest = list(peopleNumbers.items())[nextGuestIndex]
-    guestName = guest[0]
-    guestNumber = guest[1]
-    # Determine smallest group so far
-    smallestGroupIndex = iteration[0].index(min(iteration[0]))
-    # Add guest to smallest group
-    iteration[smallestGroupIndex + 1].append(guestName)
-    # Increment size of group
-    iteration[0][smallestGroupIndex] += guestNumber
-    # Add edge to graph
-    hostName = iteration[smallestGroupIndex + 1][0]
-    if guestName in peopleUnvisited[hostName]:
-        peopleUnvisited[hostName].remove(guestName)
-    animate_edge(hostName, guestName)
-    nextGuestIndex += 1
-
-hostOffset = numGroups
-
-blueprint = []
-hostList = []
-for group in superList[0][1:]:
-    hostList.append(group[0])
-
-for k in range(numGroups):
-    if k == 0:
-        hostIndex = 1
-        for index, host in enumerate(hostList):
-            guests = superList[0][index + 1][1:]
-            blueprint.append([host] + guests)
-    else:
-        hostIndex = 0
-        hostList.append(hostList.pop(0))
-        blueprint = []
-        for index, host in enumerate(hostList):
-            guests = superList[0][index + 1][1:]
-            blueprint.append([host] + guests)
-    print(blueprint)
-    biggestGroupSize = m
-    i = 1
-    while i < biggestGroupSize:
-        # Initialize hosts
-        iteration = [[]]
-        superList.append(iteration)
-        for j in range(numGroups):
-            hostName = blueprint[j][hostIndex]
-            hostNumber = peopleNumbers[hostName]
-            iteration.append([hostName])
-            # Initialize group sizes to zero
-            iteration[0].append(hostNumber)
-            # Add guests
-            for index, guest in enumerate(blueprint[j]):
-                if guest != hostName:
-                    guestNumber = peopleNumbers[guest]
-                    iteration[j + 1].append(guest)
-                    # Increment size of group
-                    iteration[0][j] += guestNumber
-                    # Add edge to graph
-                    if guest in peopleUnvisited[hostName]:
-                        peopleUnvisited[hostName].remove(guest)
-                    animate_edge(hostName, guestName)
-        hostIndex += 1
-        biggestGroupSize = len(iteration[1])
-        i += 1
-
-
-# Rotate
-
-# Run first iteration
-hostNames = []
-rotationIndex = len(superList)
-iteration = [[]]
-superList.append(iteration)
-groupSize = len(superList[0][1])
-groupIndex = 1
-for j in range(numGroups):
-    if j == groupSize:
-        groupIndex += 1
-        groupSize = len(superList[0][groupIndex])
-    hostName = superList[0][groupIndex][j]
-    hostNames.append(hostName)
-    hostNumber = peopleNumbers[hostName]
-    iteration.append([hostName])
-    # Initialize group sizes to zero
-    iteration[0].append(hostNumber)
-    for i in range(1, numGroups):
-        iteration[i].append(superList[0][i + 1][0])
-print("Heyo", iteration)
-##
-### Add guests
-##nextGuestIndex = 0
-##
-### While there are still unmatched guests
-##while nextGuestIndex < len(list(peopleNumbers.items())):
-##    # Select next guest
-##    guest = list(peopleNumbers.items())[nextGuestIndex]
-##    guestName = guest[0]
-##    if guestName not in hostNames:
-##        guestNumber = guest[1]
-##        # Determine smallest group so far
-##        smallestGroupIndex = iteration[0].index(min(iteration[0]))
-##        # Add guest to smallest group
-##        iteration[smallestGroupIndex + 1].append(guestName)
-##        # Increment size of group
-##        iteration[0][smallestGroupIndex] += guestNumber
-##        # Add edge to graph
-##        hostName = iteration[smallestGroupIndex + 1][0]
-##        if guestName in peopleUnvisited[hostName]:
-##            peopleUnvisited[hostName].remove(guestName)
-##        animate_edge(hostName, guestName)
-##    nextGuestIndex += 1
-
-hostOffset = numGroups
-
-blueprint = []
-hostList = []
-j = 1
 for i in range(numGroups):
-    if j == len(superList[0][j]):
-        j += 1
-    hostList.append(superList[0][j][i])
+    hostNames.append("")
 
-for k in range(numGroups):
-    if k == 0:
-        hostIndex = 1
-        for index, host in enumerate(hostList):
-            guests = superList[rotationIndex][index + 1][1:]
-            blueprint.append([host] + guests)
-    else:
-        hostIndex = 0
-        hostList.append(hostList.pop(0))
-        blueprint = []
-        for index, host in enumerate(hostList):
-            guests = superList[rotationIndex][index + 1][1:]
-            blueprint.append([host] + guests)
-    print(blueprint)
-    biggestGroupSize = m
-    i = 1
-    while i < biggestGroupSize:
-        # Initialize hosts
-        iteration = [[]]
-        superList.append(iteration)
-        for j in range(numGroups):
-            hostName = blueprint[j][hostIndex]
-            hostNumber = peopleNumbers[hostName]
-            iteration.append([hostName])
-            # Initialize group sizes to zero
-            iteration[0].append(hostNumber)
-            # Add guests
-            for index, guest in enumerate(blueprint[j]):
-                if guest != hostName:
-                    guestNumber = peopleNumbers[guest]
-                    iteration[j + 1].append(guest)
-                    # Increment size of group
-                    iteration[0][j] += guestNumber
-                    # Add edge to graph
-                    if guest in peopleUnvisited[hostName]:
-                        peopleUnvisited[hostName].remove(guest)
-                    animate_edge(hostName, guestName)
-        hostIndex += 1
-        biggestGroupSize = len(iteration[1])
-        i += 1
+nightNum = 0
+while len(sum(list(peopleUnvisited.values()), [])) > 0:
+    people = deepcopy(peopleUnvisited)
+    night = [[]]
+    guestQueue = []
+    
+    for i in range(numGroups):
+        group = []
+        host = max(people, key=lambda k: people[k])
+        previousHosts = []
+        while host in hostNames:
+            previousHosts.append(host)
+            del people[host]
+            host = max(people, key=lambda k: people[k])
+        del people[host]
+        group.append(host)
+        night[0].append(peopleNumbers[host])
+        hostNames[i] = host
 
-print("\n\n")
-for team in peopleUnvisited:
-    print(team, peopleUnvisited[team])
-print("\n\n")
+        for prevHost in previousHosts:
+            people[prevHost] = []
+        
+        guestToAdd = ""
+        for guest in guestQueue:
+            if peopleNumbers[guest] + night[0][i] <= m:
+                guestToAdd = guest
+                break
+                
+        if guestToAdd != "":
+            group.append(guestToAdd)
+            animate_edge(host, guestToAdd)
+            night[0][i] += peopleNumbers[guestToAdd]
+            if guestToAdd in peopleUnvisited[host]:
+                peopleUnvisited[host].remove(guestToAdd)
+            guestQueue.remove(guestToAdd)
+        
+        while night[0][i] < m:
+            guestToAdd = ""
+            potentialGuests = intersection(peopleUnvisited[host],
+                                           list(people.keys()))
+            for guest in potentialGuests:
+                if peopleNumbers[guest] + night[0][i] <= m:
+                    guestToAdd = guest
+                    break
+                else:
+                    guestQueue.append(guest)
+                    del people[guest]
 
-for i, subparList in enumerate(superList, start=1):
-    print("Night #", i)
-    print("Group sizes are =", subparList[0])
-    for j, group in enumerate(subparList[1:], start=1):
-        print("Group #", j, "=", subparList[j])
+            #print(host, potentialGuests)
+            if (len(potentialGuests) == 0 and
+                len(list(people.keys())) > 0):                
+                guestToAdd = list(people.keys())[0]
+                potentialIndex = 1
+                while (potentialIndex < len(list(people.keys())) and
+                       peopleNumbers[guestToAdd] + night[0][i] > m):                    
+                    guestToAdd = list(people.keys())[potentialIndex]
+                    potentialIndex += 1
+                    
+            #print(host, guestToAdd)
+            if guestToAdd != "":
+                group.append(guestToAdd)
+                animate_edge(host, guestToAdd)
+                night[0][i] += peopleNumbers[guestToAdd]
+                del people[guestToAdd]
+                if guestToAdd in peopleUnvisited[host]:
+                    peopleUnvisited[host].remove(guestToAdd)
+
+        night.append(group)
+
+    if len(list(people.keys())) > 0:
+        remainingGuests = list(people.keys())
+        for index, guest in enumerate(remainingGuests):
+                night[(index % numGroups) + 1].append(guest)
+                night[0][index % numGroups] += peopleNumbers[guest]
+
+    superList.append(night)
+
+    del people
+
+    nightNum += 1
+    
+    print("Night #", nightNum)
+    print("Group sizes are =", night[0])
+    for j, group in enumerate(night[1:], start=1):
+        print("Group #", j, "=", night[j])
     print()
+
+input()

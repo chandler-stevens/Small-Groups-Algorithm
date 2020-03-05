@@ -1,8 +1,13 @@
 Leia,Han
 Rey,Ben
-Anakin
+Anakin,Padme
 Qui-Gon
 Yoda
 Sidious
 Finn
 Poe
+Jabba
+R2-D2
+C-3PO
+BB-8
+Zorii
