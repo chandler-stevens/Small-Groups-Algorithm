@@ -9,10 +9,10 @@
 # GitHub Classroom Private Repository:
 #     https://github.com/csc3430-winter2020/community-small-groups-palpateam
 #
-# Runtime of each data file with m = 4:
-# group1.txt runtime = 144 seconds = 2 minutes 24 seconds
-# group2.txt runtime = 958 seconds = 15 minutes 58 seconds
-# group3.txt runtime =  seconds =  minutes  seconds
+# Empiric runtime performance of each data file with m = 4 with animation:
+# group1.txt runtime = 35 seconds
+# group2.txt runtime = 230 seconds = 3 minutes 50 seconds
+# group3.txt runtime = 505 seconds = 8 minutes 25 seconds
 
 # OS library for installing Requirements and checking if file exists
 from os import system, path
@@ -22,23 +22,22 @@ system("pip install -r ./Requirements.txt")
 
 # Python Standard Library
 
-# System library for printing exception error message
-from sys import exc_info
 # Deepcopy to generate deep copy of maps
 from copy import deepcopy
-# Timeit Timeit to measure empiric time performance
-from timeit import timeit
+# Timeit to measure empiric time performance
+import timeit
 
 # Override Timeit Template to return the return value of function call
-timeit.template = """
+new_template = """
 def inner(_it, _timer{init}):
     {setup}
     _t0 = _timer()
     for _i in _it:
-        retval = {stmt}
+        ret_val = {stmt}
     _t1 = _timer()
-    return _t1 - _t0, retval
+    return _t1 - _t0, ret_val
 """
+timeit.template = new_template
 
 # Requirements
 
@@ -49,11 +48,16 @@ from matplotlib import pyplot as plt
 # Matplotlib Pylab Show for drawing animation
 from matplotlib import pylab
 
+# Constant for maximum allowed size m for a small group
+MAXIMUM_M = 10
+
 
 # Purpose: Ask user for file, ideal group size, and then generate small groups
 # Parameters: None
 # Returns: Nothing
 def Main():
+    print("\nFinished installing all necessary Requirements.\n")
+    
     # Ask user for input file until given file exists
     filename = input("Please enter the filename: ")
     while not path.isfile(filename):
@@ -65,27 +69,40 @@ def Main():
     # Parse file and generate n, teamCount and peopleUnvisited
     G, n, teamCount, peopleNumbers, peopleUnvisited = ParseTeamsFile(filename)
 
+    print("People retrieved from " + filename + ":")
+    print(list(peopleNumbers.keys()), "\n")
+
     # Get ideal group size from user
     m = RequestIdealGroupSize(n)
+
+    showAnimation = False
+    choice = input("\nWould you like to see an animated graph? (y/n) ").lower()
+    if choice == "y":
+        showAnimation = True
 
     print("\nInitiating Small Group Allocation Algorithm . . .\n")
 
     # Generate list of lists while also measuring the runtime performance
-    runtime, superList = timeit(lambda:
-                                AllocateSmallGroups(G, n, teamCount, m,
-                                                    peopleNumbers,
-                                                    peopleUnvisited),
-                                number=1)
+    runtime, superList = timeit.timeit(
+        lambda: AllocateSmallGroups(G, n, teamCount, m, showAnimation,
+                                    peopleNumbers, peopleUnvisited),
+        number=1)
 
     # Print runtime performance
     print("Allocated all small groups with n =", n, "and m =", m, "in",
-          runtime, "seconds.")
+          int(runtime), "seconds.")
 
     # Print list of lists
-    print("\n\nPrinting entire list of lists of all small groups . . . \n\n")
-    print(superList)
+    print("\n\nPrinting entire list of lists of all small groups . . . \n")
+    print("[")
+    for index, night in enumerate(superList):
+        if index < len(superList) - 1:
+            print(str(night) + ",")
+        else:
+            print(night)
+    print("]")
 
-    input("\n\nPress any key to exit . . .")
+    input("\n\nPress the Enter key to exit . . .")
 
 
 # Purpose: Parse compatible data file and generate graph and metadata
@@ -111,29 +128,40 @@ def ParseTeamsFile(filename):
     peopleNumbers = {}
     # Initialize map for list of teams who have not visited each team
     peopleUnvisited = {}
+    # Initialize map as histogram of teams as to handle duplicates
+    peopleOccurrences = {}
 
     # Iterate through file and parse each team
     for line in fin:
-        try:
+        line = line.strip()
+        if len(line) > 0:
             if "," in line:
                 commaIndex = line.index(",")
-                name = line[:commaIndex] + " + " + line[commaIndex + 1:-1]
-                peopleNumbers[name] = 2
-                n += 2
+                firstName = line[:commaIndex].strip()
+                secondName = line[commaIndex:].lstrip(",").strip()
+                name = firstName + " + " + secondName
+                individuals = 2
             else:
-                name = line[:-1]
-                peopleNumbers[name] = 1
-                n += 1
+                name = line
+                individuals = 1
 
+            if name in peopleOccurrences:
+                peopleOccurrences[name] += 1
+                name += " (" + str(peopleOccurrences[name]) + ")"
+            else:
+                peopleOccurrences[name] = 1
+            peopleNumbers[name] = individuals
+            n += individuals
             peopleUnvisited[name] = []
             G.add_node(name)
             teamCount += 1
-        except:
-            print("File Read Error: ", exc_info()[0])
-            input("Press any key to exit . . .")
-            exit(1)
 
     fin.close()
+
+    for team in peopleOccurrences:
+        if peopleOccurrences[team] > 1:
+            peopleNumbers[team + " (1)"] = peopleNumbers.pop(team)
+            peopleUnvisited[team + " (1)"] = peopleUnvisited.pop(team)
 
     for host in peopleNumbers:
         for guest in peopleNumbers:
@@ -146,21 +174,27 @@ def ParseTeamsFile(filename):
 # Purpose: Ask user for valid ideal group size
 # Parameters: n represents the number of individuals
 # Returns: m represents ideal group size greater than 1
-#              and less than or equal to n
+#              and less than or equal to (n or MAXIMUM_M, whichever is smaller)
 def RequestIdealGroupSize(n):
     validM = False
     # Minimum group size is two
     m = 2
 
+    if n < MAXIMUM_M:
+        maxSize = n
+    else:
+        maxSize = MAXIMUM_M
+
     while not validM:
         if m < 2:
             print("Small groups should have at least 2 people.")
-        elif m > n:
-            print("Group size cannot exceed number of people (" + str(n) + ").")
+        elif m > maxSize:
+            print("Group size cannot exceed number of people (" +
+                  str(maxSize) + ").")
 
         try:
             m = int(input("Please enter the ideal group size: "))
-            if 2 <= m <= n:
+            if 2 <= m <= maxSize:
                 validM = True
         except ValueError:
             print("Please enter an integer for the ideal group size.")
@@ -192,14 +226,10 @@ def Difference(src, blk):
 #             host represents the vertex to draw arrow to
 # Returns: Nothing
 def AnimateEdge(G, fig, pos, guest, host):
-    fig.clear()
     G.add_edge(host, guest)
-    nx.draw_circular(G, with_labels=True)
     nx.draw_networkx_edges(G, pos, edgelist=[(host, guest)],
-                           edge_color='g', width=5)
-    fig.canvas.draw()
-    pylab.draw()
-    plt.pause(0.1)
+                           edge_color='g')
+    plt.pause(0.000000000001)
 
 
 # Purpose: Allocate teams to small groups in which every team visits every team
@@ -210,11 +240,13 @@ def AnimateEdge(G, fig, pos, guest, host):
 #             peopleNumbers represents size of each team
 #             peopleUnvisited represents teams that have not visited each team
 # Returns: Nothing
-def AllocateSmallGroups(G, n, teamCount, m, peopleNumbers, peopleUnvisited):
+def AllocateSmallGroups(G, n, teamCount, m, showAnimation,
+                        peopleNumbers, peopleUnvisited):
     pos = nx.circular_layout(G)
     pylab.show()
     fig = pylab.figure()
-
+    nx.draw_circular(G, with_labels=True)
+    
     cliqueEdges = teamCount * (teamCount - 1)
 
     numGroups = n // m
@@ -248,11 +280,12 @@ def AllocateSmallGroups(G, n, teamCount, m, peopleNumbers, peopleUnvisited):
             group.append(host)
             night[0].append(peopleNumbers[host])
             hostNames.append(host)
-
+            
             for guest in guestQueue:
                 if peopleNumbers[guest] + night[0][i] <= m:
                     group.append(guest)
-                    AnimateEdge(G, fig, pos, guest, host)
+                    if showAnimation:
+                        AnimateEdge(G, fig, pos, guest, host)
                     night[0][i] += peopleNumbers[guest]
                     if guest in peopleUnvisited[host]:
                         peopleUnvisited[host].remove(guest)
@@ -267,29 +300,38 @@ def AllocateSmallGroups(G, n, teamCount, m, peopleNumbers, peopleUnvisited):
                 for guest in potentialGuests:
                     if peopleNumbers[guest] == 1:
                         noSingles = False
-                    if peopleNumbers[guest] + night[0][i] <= m:
+                    elif (guestToAdd == "" and
+                          peopleNumbers[guest] + night[0][i] <= m):
                         guestToAdd = guest
-                        break
-                    else:
-                        guestQueue.append(guest)
-                        del people[guest]
 
-                if guestToAdd == "" and noSingles and len(potentialGuests) > 0:
-                    guestToAdd = potentialGuests[0]
-                    if guestToAdd in guestQueue:
-                        guestQueue.remove(guestToAdd)
-                        people[guestToAdd] = []
-                elif len(potentialGuests) == 0 and len(list(people.keys())) > 0:
-                    guestToAdd = list(people.keys())[0]
-                    potentialIndex = 1
-                    while (potentialIndex < len(list(people.keys())) and
-                           peopleNumbers[guestToAdd] + night[0][i] > m):
-                        guestToAdd = list(people.keys())[potentialIndex]
-                        potentialIndex += 1
+                if guestToAdd == "":
+                    for guest in potentialGuests:
+                        if peopleNumbers[guest] + night[0][i] <= m:
+                            guestToAdd = guest
+                            break
+                        else:
+                            guestQueue.append(guest)
+                            del people[guest]
+
+                if guestToAdd == "":
+                    if (noSingles and len(potentialGuests) > 0 and
+                        i == numGroups - 1):
+                        guestToAdd = potentialGuests[0]
+                        if guestToAdd in guestQueue:
+                            guestQueue.remove(guestToAdd)
+                            people[guestToAdd] = []
+                    elif (len(potentialGuests) == 0 and len(list(people.keys())) > 0):
+                        guestToAdd = list(people.keys())[0]
+                        potentialIndex = 1
+                        while (potentialIndex < len(list(people.keys())) and
+                               peopleNumbers[guestToAdd] + night[0][i] > m):
+                            guestToAdd = list(people.keys())[potentialIndex]
+                            potentialIndex += 1
 
                 if guestToAdd != "":
                     group.append(guestToAdd)
-                    AnimateEdge(G, fig, pos, guestToAdd, host)
+                    if showAnimation:
+                        AnimateEdge(G, fig, pos, guestToAdd, host)
                     night[0][i] += peopleNumbers[guestToAdd]
                     del people[guestToAdd]
                     if guestToAdd in peopleUnvisited[host]:
@@ -310,8 +352,13 @@ def AllocateSmallGroups(G, n, teamCount, m, peopleNumbers, peopleUnvisited):
                     sortedRemainingGuests.append(guest)
             for guest in sortedRemainingGuests:
                 smallestGroupIndex = night[0].index(min(night[0]))
+                host = night[smallestGroupIndex + 1][0]
                 night[smallestGroupIndex + 1].append(guest)
+                if showAnimation:
+                    AnimateEdge(G, fig, pos, guest, host)
                 night[0][smallestGroupIndex] += peopleNumbers[guest]
+                if guest in peopleUnvisited[host]:
+                    peopleUnvisited[host].remove(guest)
 
         superList.append(night)
 
@@ -319,12 +366,15 @@ def AllocateSmallGroups(G, n, teamCount, m, peopleNumbers, peopleUnvisited):
 
         nightNum += 1
 
-        edges = G.number_of_edges()
-
         print("Night #", nightNum)
         print("Group sizes are =", night[0])
         for j, group in enumerate(night[1:], start=1):
             print("Group #", j, "=", night[j])
+
+        if showAnimation:
+            edges = G.number_of_edges()
+        else:
+            edges = cliqueEdges - len(sum(list(peopleUnvisited.values()), []))
 
         print("Clique is", int(100 * (edges / cliqueEdges)),
               "% complete (" + str(edges), "of",
@@ -333,4 +383,9 @@ def AllocateSmallGroups(G, n, teamCount, m, peopleNumbers, peopleUnvisited):
     return superList
 
 
-Main()
+try:
+    Main()
+except Exception as error:
+    print("Error: " + str(error))
+    input("\n\nPress the Enter key to exit . . .")
+    exit(1)
