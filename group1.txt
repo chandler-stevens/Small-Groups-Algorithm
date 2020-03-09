@@ -1,6 +1,7 @@
 Leia,Han
-Rey,Ben
 Anakin,Padme
+Rey
+Ben
 Qui-Gon
 Yoda
 Sidious
