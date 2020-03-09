@@ -21,7 +21,7 @@ n = 0
 
 #m = int(input("Please enter the ideal group size: "))
 
-m = 4
+m = 6
 
 G = nx.DiGraph()
 labels = {}
@@ -70,63 +70,65 @@ def animate_edge(host, guest):
 
 numGroups = n // m
 
-def intersection(lst1, lst2): 
+def intersection(lst1, lst2):
     return list(set(lst1) & set(lst2))
 
 superList = []
 
-hostNames = []
-for i in range(numGroups):
-    hostNames.append("")
-
 nightNum = 0
+previousHosts = []
 while len(sum(list(peopleUnvisited.values()), [])) > 0:
     people = deepcopy(peopleUnvisited)
     night = [[]]
     guestQueue = []
-    
+    hostNames = []
+
     for i in range(numGroups):
         group = []
-        host = max(people, key=lambda k: people[k])
-        previousHosts = []
-        while host in hostNames:
-            previousHosts.append(host)
+        host = max(people, key=lambda k: len(people[k]))
+        hostQueue = []
+        while host in previousHosts:
+            hostQueue.append(host)
             del people[host]
-            host = max(people, key=lambda k: people[k])
+            host = max(people, key=lambda k: len(people[k]))
         del people[host]
         group.append(host)
         night[0].append(peopleNumbers[host])
-        hostNames[i] = host
-
-        for prevHost in previousHosts:
+        hostNames.append(host)
+        
+        for prevHost in hostQueue:
             people[prevHost] = []
         
-        guestToAdd = ""
-        for guest in guestQueue:
-            if peopleNumbers[guest] + night[0][i] <= m:
-                guestToAdd = guest
-                break
-                
-        if guestToAdd != "":
+        if len(guestQueue) > 0:
+            guestToAdd = guestQueue.pop()
             group.append(guestToAdd)
             animate_edge(host, guestToAdd)
             night[0][i] += peopleNumbers[guestToAdd]
             if guestToAdd in peopleUnvisited[host]:
                 peopleUnvisited[host].remove(guestToAdd)
-            guestQueue.remove(guestToAdd)
-        
-        while night[0][i] < m:
+
+        while night[0][i] < m and len(list(people.keys())) > 0:
             guestToAdd = ""
             potentialGuests = intersection(peopleUnvisited[host],
                                            list(people.keys()))
+            noSingles = True
             for guest in potentialGuests:
+                if peopleNumbers[guest] == 1:
+                    noSingles = False
                 if peopleNumbers[guest] + night[0][i] <= m:
                     guestToAdd = guest
                     break
                 else:
                     guestQueue.append(guest)
                     del people[guest]
-
+                    
+            if guestToAdd == "" and noSingles and len(potentialGuests) > 0:
+                guestToAdd = potentialGuests[0]
+                if guestToAdd not in people:
+                    people[guestToAdd] = []
+                if guestToAdd in guestQueue:
+                    guestQueue.remove(guestToAdd)
+                    
             #print(host, potentialGuests)
             if (len(potentialGuests) == 0 and
                 len(list(people.keys())) > 0):                
@@ -148,13 +150,26 @@ while len(sum(list(peopleUnvisited.values()), [])) > 0:
 
         night.append(group)
 
-    if len(list(people.keys())) > 0:
-        remainingGuests = list(people.keys())
-        for index, guest in enumerate(remainingGuests):
-                night[(index % numGroups) + 1].append(guest)
-                night[0][index % numGroups] += peopleNumbers[guest]
+    for guest in guestQueue:
+        people[guest] = []
+
+    remainingGuests = list(people.keys())
+    if len(remainingGuests) > 0:
+        sortedRemainingGuests = []
+        for guest in remainingGuests:
+            if peopleNumbers[guest] == 2:
+                sortedRemainingGuests.insert(0, guest)  
+            else:
+                sortedRemainingGuests.append(guest)
+        print("RE", sortedRemainingGuests)
+        for guest in sortedRemainingGuests:
+            smallestGroupIndex = night[0].index(min(night[0]))
+            night[smallestGroupIndex + 1].append(guest)
+            night[0][smallestGroupIndex] += peopleNumbers[guest]
 
     superList.append(night)
+
+    previousHosts = hostNames
 
     del people
 
@@ -166,4 +181,4 @@ while len(sum(list(peopleUnvisited.values()), [])) > 0:
         print("Group #", j, "=", night[j])
     print()
 
-input()
+input("")
