@@ -10,9 +10,9 @@
 #     https://github.com/csc3430-winter2020/community-small-groups-palpateam
 #
 # Empiric runtime performance of each data file with m = 4 with animation:
-# group1.txt runtime = 35 seconds
-# group2.txt runtime = 230 seconds = 3 minutes 50 seconds
-# group3.txt runtime = 505 seconds = 8 minutes 25 seconds
+# group1.txt runtime = 33 seconds
+# group2.txt runtime = 247 seconds = 4 minutes 7 seconds
+# group3.txt runtime = 443 seconds = 7 minutes 23 seconds
 
 # OS library for installing Requirements and checking if file exists
 from os import system, path
@@ -220,12 +220,11 @@ def Difference(src, blk):
 
 # Purpose: Adds an edge to a graph and updates animation
 # Parameters: G represents the directed graph data structure
-#             fig represents the animation canvas figure
-#             pos represents the
+#             pos represents the positions of the graph nodes
 #             guest represents the vertex to draw arrow from
 #             host represents the vertex to draw arrow to
 # Returns: Nothing
-def AnimateEdge(G, fig, pos, guest, host):
+def AnimateEdge(G, pos, guest, host):
     G.add_edge(host, guest)
     nx.draw_networkx_edges(G, pos, edgelist=[(host, guest)],
                            edge_color='g')
@@ -237,14 +236,14 @@ def AnimateEdge(G, fig, pos, guest, host):
 #             n represents the number of individuals
 #             teamCount represents the number of teams
 #             m represents the ideal group size
+#             showAnimation represents whether to display graph
 #             peopleNumbers represents size of each team
 #             peopleUnvisited represents teams that have not visited each team
-# Returns: Nothing
+# Returns: superList represents a list of lists of all small groups
 def AllocateSmallGroups(G, n, teamCount, m, showAnimation,
                         peopleNumbers, peopleUnvisited):
     pos = nx.circular_layout(G)
     pylab.show()
-    fig = pylab.figure()
     nx.draw_circular(G, with_labels=True)
     
     cliqueEdges = teamCount * (teamCount - 1)
@@ -257,90 +256,124 @@ def AllocateSmallGroups(G, n, teamCount, m, showAnimation,
     while len(sum(list(peopleUnvisited.values()), [])) > 0:
         people = deepcopy(peopleUnvisited)
         night = [[]]
-        guestQueue = []
         hostNames = []
 
         for i in range(numGroups):
+            peopleList = list(people.keys())
+            peopleNum = len(peopleList)
+            if peopleNum == 1:
+                break
+
             group = []
             potentialHosts = {}
-            for person in Difference(list(people.keys()), previousHosts):
+            for person in Difference(peopleList, previousHosts):
                 potentialHosts[person] = people[person]
 
             if len(potentialHosts) > 0:
                 host = max(potentialHosts, key=lambda k: len(potentialHosts[k]))
-                del people[host]
-            else:
-                if len(guestQueue) > 0:
-                    host = guestQueue.pop()
-                else:
-                    host = Intersection(list(people.keys()),
-                                        Difference(previousHosts, hostNames))[0]
-                    del people[host]
 
+                previousHostOptions = Intersection(
+                    peopleList, Difference(previousHosts, hostNames))
+                if len(previousHostOptions) > 0:
+                    potentialHosts = {}
+                    for person in previousHostOptions:
+                        potentialHosts[person] = peopleUnvisited[person]
+                    prevHost = max(potentialHosts,
+                                   key=lambda k: len(potentialHosts[k]))
+                    if (len(peopleUnvisited[host]) <
+                            len(peopleUnvisited[prevHost])):
+                        host = prevHost
+            else:
+                previousHostOptions = Intersection(
+                    peopleList, Difference(previousHosts, hostNames))
+                if len(previousHostOptions) > 0:
+                    potentialHosts = {}
+                    for person in previousHostOptions:
+                        potentialHosts[person] = peopleUnvisited[person]
+                    host = max(potentialHosts,
+                               key=lambda k: len(potentialHosts[k]))
+                else:
+                    break
+
+            del people[host]
             group.append(host)
             night[0].append(peopleNumbers[host])
             hostNames.append(host)
-            
-            for guest in guestQueue:
-                if peopleNumbers[guest] + night[0][i] <= m:
-                    group.append(guest)
-                    if showAnimation:
-                        AnimateEdge(G, fig, pos, guest, host)
-                    night[0][i] += peopleNumbers[guest]
-                    if guest in peopleUnvisited[host]:
-                        peopleUnvisited[host].remove(guest)
-                    guestQueue.remove(guest)
-                    break
 
-            while night[0][i] < m and len(list(people.keys())) > 0:
-                guestToAdd = ""
+            if peopleNumbers[host] >= m:
                 potentialGuests = Intersection(peopleUnvisited[host],
                                                list(people.keys()))
-                noSingles = True
-                for guest in potentialGuests:
-                    if peopleNumbers[guest] == 1:
-                        noSingles = False
-                    elif (guestToAdd == "" and
-                          peopleNumbers[guest] + night[0][i] <= m):
-                        guestToAdd = guest
-
-                if guestToAdd == "":
-                    for guest in potentialGuests:
-                        if peopleNumbers[guest] + night[0][i] <= m:
-                            guestToAdd = guest
-                            break
-                        else:
-                            guestQueue.append(guest)
-                            del people[guest]
-
-                if guestToAdd == "":
-                    if (noSingles and len(potentialGuests) > 0 and
-                        i == numGroups - 1):
-                        guestToAdd = potentialGuests[0]
-                        if guestToAdd in guestQueue:
-                            guestQueue.remove(guestToAdd)
-                            people[guestToAdd] = []
-                    elif (len(potentialGuests) == 0 and len(list(people.keys())) > 0):
-                        guestToAdd = list(people.keys())[0]
-                        potentialIndex = 1
-                        while (potentialIndex < len(list(people.keys())) and
-                               peopleNumbers[guestToAdd] + night[0][i] > m):
-                            guestToAdd = list(people.keys())[potentialIndex]
-                            potentialIndex += 1
-
-                if guestToAdd != "":
+                if len(potentialGuests) > 0:
+                    guestToAdd = potentialGuests[0]
                     group.append(guestToAdd)
                     if showAnimation:
-                        AnimateEdge(G, fig, pos, guestToAdd, host)
+                        AnimateEdge(G, pos, guestToAdd, host)
+                    night[0][i] += peopleNumbers[guestToAdd]
+                    del people[guestToAdd]
+                    peopleUnvisited[host].remove(guestToAdd)
+
+            while night[0][i] < m and len(list(people.keys())) > 0:
+                guestToAdd = None
+                peopleList = list(people.keys())
+                peopleNum = len(peopleList)
+                potentialGuests = Intersection(peopleUnvisited[host],
+                                               peopleList)
+                potentialNum = len(potentialGuests)
+
+                # If adding any guest at any point will overflow for this host
+                if peopleNumbers[host] + 2 > m:
+                    # Then add a guest anyway with preference toward unvisited
+                    if potentialNum > 0:
+                        guestToAdd = potentialGuests[0]
+                    else:
+                        guestToAdd = peopleList[0]
+                
+                # If there are potential guests but still no guest selected 
+                if potentialNum > 0 and guestToAdd is None:
+                    # If a couple can fit
+                    if night[0][i] + 2 <= m:
+                        # Then add a couple, if one is available
+                        for guest in potentialGuests:
+                            if peopleNumbers[guest] == 2:
+                                guestToAdd = guest
+                                break
+
+                    # Otherwise, if still no guest selected and
+                    #     if a single can fit 
+                    if guestToAdd is None and night[0][i] + 1 <= m:
+                        for guest in potentialGuests:
+                            # Then add a single, if one is available
+                            if peopleNumbers[guest] == 1:
+                                guestToAdd = guest
+                                break
+
+                    # Otherwise, stop attempting to add guests to this group and
+                    # simply allow the remainingGuests list to fill groups
+                    if guestToAdd is None:
+                        break
+                # Otherwise, if there are, in fact, no potential guests and
+                #     still no guest selected but there are unassigned guests
+                elif potentialNum == 0 and guestToAdd is None and peopleNum > 0:
+                    # Then add a guest anyway 
+                    guestToAdd = peopleList[0]
+                    potentialIndex = 1
+                    # Try the next guest if the current one will not fit
+                    while (potentialIndex < peopleNum and
+                           peopleNumbers[guestToAdd] + night[0][i] > m):
+                        guestToAdd = peopleList[potentialIndex]
+                        potentialIndex += 1
+                    
+                # If there is a guest selected
+                if guestToAdd is not None:
+                    group.append(guestToAdd)
+                    if showAnimation:
+                        AnimateEdge(G, pos, guestToAdd, host)
                     night[0][i] += peopleNumbers[guestToAdd]
                     del people[guestToAdd]
                     if guestToAdd in peopleUnvisited[host]:
                         peopleUnvisited[host].remove(guestToAdd)
 
             night.append(group)
-
-        for guest in guestQueue:
-            people[guest] = []
 
         remainingGuests = list(people.keys())
         if len(remainingGuests) > 0:
@@ -355,7 +388,7 @@ def AllocateSmallGroups(G, n, teamCount, m, showAnimation,
                 host = night[smallestGroupIndex + 1][0]
                 night[smallestGroupIndex + 1].append(guest)
                 if showAnimation:
-                    AnimateEdge(G, fig, pos, guest, host)
+                    AnimateEdge(G, pos, guest, host)
                 night[0][smallestGroupIndex] += peopleNumbers[guest]
                 if guest in peopleUnvisited[host]:
                     peopleUnvisited[host].remove(guest)
