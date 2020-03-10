@@ -1,49 +1,42 @@
 # Creating Community Small Groups
 **A work by: Dr. Carlos Arias, Elizabeth Myers, and Chandler Stevens**
 
-**CSC 3430: Algorithm Design and Analysis**
+**CSC 3430: Algorithm Analysis and Design**
 
-**Algorithm for allocating church members to small groups.**
+## Introduction
+
+The following information describes our algorithm for allocating church members to small groups. We begin with a description of the problem that we are solving, along with several constraints. Then, we describe the software and package requirements needed to run our program. Next, we provide a user manual that explains how to launch and use the program with example screenshots and a YouTube video tutorial. We include a reflection of the steps we took to determine the ideal algorithm and subsequently the implementation of our algorithm as well as the time complexities of each. We also discuss the challenges we overcame during development. Finally, we include example outputs for each of the three text files provided in this repository. 
 
 ## Description
 
-A church community would like to form small groups of people for Bible studies. These Bible studies will serve to explore and share
-deep theological discussions between community members. In order to facilitate relational connections between all members of this
-community, every person should visit every other member's house. Each person hosting a small group meeting at their house is 
-considered a host. 
+A church community would like to form small groups of people for Bible studies. These Bible studies will serve to explore and share deep theological discussions between community members. In order to facilitate relational connections between all members of this community, every person should visit every other member's house. Each person hosting a small group meeting at their house is  considered a host. 
 
-The purpose of this project is to allocate people within a church community into ideally sized small groups. The program created for
-this project will read a list of people from a text file and assign these people to groups of the desired size. The output of this 
-project is a list of lists. Each list will have a list of that night's hosts and their guests. An additional constraint
-of this project is that if a person is married, then that person must always be placed in the same small group that their spouse is 
-placed in. 
+The purpose of this project is to allocate people within a church community into ideally sized small groups. The program created for this project will read a list of people from a text file and assign these people to groups of the desired size. The output of this  project is a list of lists. Each list will have a list of that night's hosts and their guests. An additional constraint of this project is that if a person is married, then that person must always be placed in the same small group that their spouse is placed in. An additional contraint that we added to our program is minimizing the number of times that a person/couple must host multiple consecutive nights. 
 
-In the text file each individual person is followed by a new line and each married couple is joined with a comma and
-followed by a new line.
+In the text file each individual person is followed by a new line and each married couple is joined with a comma and followed by a new line.
 
-The programming langauge that we chose for our project was Python 3. We chose this language because it has supported graph libraries
-(such as networkx) and our group decided we wanted to familiarize ourselves more with a scripting language.
+The programming language that we chose for our project was Python 3. We chose this language because it has supported graph libraries (such as networkx) and our group decided we wanted to familiarize ourselves more with a scripting language.
 
 
 ## Requirements
-The required Python version for our program is Python 3.7 or up. 
+The required Python version for our program is Python 3.7 or up. When installing Python 3, the user must choose to install all the optional features, namely the _pip_ package installer.  
 
 The required Python libraries for our program include: 
-- networkx (utilized to create graph data structures)
-- matplotlib (utilized to display and animate graphs in our program)
+- networkx (utilized to create a graph data structure)
+- matplotlib (utilized to display and animate a graph in our program)
 - numpy (utilized to support matplotlib)
 
+The first step of our program will attempt to install these required Python libraries for the user. Therefore, the user should not need to manually install these requirements and the user should only need to install the Python 3 programming language. 
 
 ## User Manual
-
-*Once a person clones this into their computer how the person is supposed to run the program, add screenshots showing how your program works, also add here the link to the Youtube video showing the program running*
 
 1. Once you have cloned the repo, unzip or extract the files as necessary.
 2. Then, inside the folder, double-click the "Small-Group.py" file to run the program.
 3. The program will prompt you for a filename, so enter a group textfile (e.g. "group1.txt").
-4. Next, the program will prompt you for a ideal group size, which should be positive integer.
+4. Next, the program will prompt you for an ideal group size, which should be a positive integer.
 5. The program will ask if you would like to display the graph animation or simply run the algorithm without an animation.
-6. Then, the program will immediately began the algorithm while displaying its progress on the graph animation window.
+a. Type and enter "y" to display the graph animation or "n" to **not** display the graph animation
+6. Then, the program will immediately begin the algorithm while displaying its progress.
 7. Finally, once the program has completed, the set of sets of each group for each night will be displayed.
 
 ### The following are screenshots of our program running:
@@ -65,65 +58,65 @@ _Click an image to view a close-up, scrollable version._
 
 ### The following is a link to a YouTube video of our program running:
 
-*A link to a YouTube video showing your program running with an explanation of the steps that you are taking*
+https://youtu.be/KTWziXdUNFM
 
 
 ## Reflection
+If we were to find the set of sets of teams in the minimum amount of iterations, the algorithm would only assign people to fill a group if they have never visited that host before. For an example of this, given a list of n=16 people with an ideal group size of m=4, there would be 4 hosts with each host receiving 3 new guests each night. Each night would then have 12 new edges being assigned. The total number of edges in the representational graph would be (n x (n-1)) since each person does not need to visit themselves. In this example, the total number of edges would be 16 x 15 = 240 edges, so for 240 edges with 12 edges added per night, there would be a minimum of 20 iterations/nights. The time complexity of this ideal algorithm, which runs the minimum amount of iterations, would be O(n<sup>2</sup>). This is because for each person n, there must be (n-1) persons assigned to them after the algorithm completes. 
 
-In order to find the set of sets of teams in the minimum amount of iterations, we implemented an algorithm that runs in O(n^3) time.
-We initialize the algorithm in the following way: We read the text file and for each team, we added them to a map _peopleNumbers_ with
-the values being 1 if it is a single person and 2 if there is a married couple. We then made another map _peopleUnivisited_ that
-generates a list of all the people who have not visited each host. We also created a directed graph initialized with the number of
-teams, so each team had their own node. We determined how many groups there should be by doing integer division between _n_ (the number
-of individuals) divided by _m_ (the ideal group size entered by the user). We also initialized a list _superList_ that will contain 
-all of the sub-lists, which will be returned as the results to be outputted. The last items we set up was a list of hosts _hostNames_
-who hosted the previous night. 
-The algorithm follows the following logic:
+Though the optimal solution for this problem would choose hosts regardless if they have hosted the previous night or not, we decided to be realistic with a real-life situation in our algorithm in which we would not assign people as hosts multiple nights in a row. Thus, we tried to ensure that if people hosted the night before, they are not a host the following night, if possible. This caused our number of iterations to be slightly greater than that of the optimal solution, which has the minimum amout of iterations. In order to find the set of sets of teams in the minimum amount of iterations, we implemented an algorithm that runs in O(n<sup>3</sup>) time.
+
+We initialize the algorithm in the following way: 
+1. We read the text file and for each team, we added them to a map _peopleNumbers_ with the values being 1 if it is a single person and 2 if there is a married couple. 
+2. We then made another map _peopleUnivisited_ that generates a list of all the people who have not visited each host. 
+3. We also created a directed graph initialized with the number of teams, so each team had their own node. 
+4. We determined how many groups there should be by doing integer division between _n_ (the number of individuals) divided by _m_ (the ideal group size entered by the user). 
+5. We also initialized a list _superList_ that will contain all of the sub-lists, which will be returned as the results to be outputted. 
+6. The last items we set up was a list of hosts _hostNames_ who hosted the previous night. 
+
+Our algorithm utilizes the following logic:
 ```
-while there are still people who have not visited every host's house (there are still values in _peopleUnvisited_)
-  make a deep copy of the map of unvisited people called _people_
-  initialize a sublist to store the groups for this night called _night_
-  initialize a queue _guestQueue_ in case a team doesn't fit in a group and goes above the ideal group size _m_
-  for each group to meet at a host's house (counter-controlled loop from i=0 to i=_n/m_-1)
-    initialize a list called _group_ for that group
-    select a host based on which team has been visited the least as long as they aren't in the _hostNames_ list
-    add host to _group_ and to _hostNames_
-    iterate through _guestQueue_ and add a team from it if, when added, they will fit the ideal group size _m_ 
-      if a team was added from _guestQueue_, draw an edge from that guest node to the host node they were added to
-    while _group_ is not filled and less than the ideal group size _m_ and there are still teams to add 
-      find the intersection between _peopleUnvisited_ of that host and the _people_ who have not been assigned
-      select a guest that will fit in _group_, but if one does not fit then they are added to the _guestQueue_ 
-      if there is no one from _people_ who has also not visited the host, still add a team to fill the group
-      add a team to _group_ and remove them from _peopleUnvisited_ of their host and _people_
-      if a team was added, draw an edge from that guest node to the host node they were added to
-    add the now filled _group_ to _night_ 
-   if there is anyone left in _people_ or _guestQueue_, distribute them across all the groups so each _group_ is balanced
-   add that _night_ to _superList_
+//team refers to either a couple or a single person to add
+while there are still people who have not visited every host's house
+  make a deep copy of the map of unvisited people called "people"
+  initialize a sublist to store the groups for this night called "night"
+  for each group to meet at a host's house (counter-controlled loop from i=0 to i="n/m"-1)
+    initialize a list called "group" for that group
+    select a host based on which team has been visited the least that is not in "hostNames"
+    add host to "group" and to "hostNames"
+    find the intersection between "peopleUnvisited" of that host and the "people" who have not been assigned
+      if the host fills the ideal group size or the size of the host = "m"
+        add a guest anyways and draw an edge
+    while "group" is not filled and less than the ideal group size "m" and there are still teams to add 
+      find the intersection between "peopleUnvisited" of that host and the "people" who have not been assigned
+      if adding a team will overflow a group
+        select a team anyway
+      if there is a team in the intersection
+        select a guest that will fit in "group", trying to add couples first before trying to add singles
+      if the intersection is empty but "people" is not empty
+        select a team anyways to fill "group"
+      if a team was selected
+        add the selected team to "group" and remove them from their host's "peopleUnvisited" list and "people"
+        draw an edge from that guest node to the host node they were added to
+    add the "group" to "night" 
+   if there is anyone left in "people"
+    distribute them across all the groups so each "group" is balanced
+   add that "night" to "superList"
 ```
-   
-The time complexity of this algorithm that runs the minimum amount of iterations is O(n^3), which is the time complexity of our 
-algorithm. When we generate the _peopleUnvisited_ map values, this takes only O(n^2) time. But after finding the approximate time
-complexity of each nested loop, we are left with a worst case time complexity reduced to O(n^3).
 
-We ran into several difficulties when creating the algorithm for this project. Our first attempt at an algorithm was too focused on
-representing the data conceptually as a matrix rather than a map. Because of this, we attempted to manipulate the matrix and have
-each team visit each host through a process of picking a host and having the subsequent created groups iterate, shift, and rotate 
-to visit each host. However, this was both far too complex and failed to generate a full clique. After realizing that manipulating a
-conceptual matrix of the data would be both inefficient as well as incomplete, we decided to represent the data with maps and queues.
-By utilizing these data structures and looking for intersections between maps, we managed to generate a full clique efficiently. 
+When we generate the _peopleUnvisited_ map values, this takes only O(n<sup>2</sup>) time. But after finding the approximate time
+complexity for the iterative code segments, we are left with a worst case time complexity reduced to O(n<sup>3</sup>). The iterative
+code segments are as follows:
+```
+1. While there are still teams who have not visited every other team 
+    2. While there are still groups to create
+        3. Create a group, select a host, and iteratively select guest(s) for that group
+```
+We ran into several difficulties when creating the algorithm for this project. Our first attempt at an algorithm was too focused on representing the data conceptually as a matrix rather than a map. Because of this, we attempted to manipulate the matrix by having each team visit each host through a process of picking a host and having the subsequent created groups iterate, shift, and rotate to visit each host. However, this was both far too complex and failed to generate a full clique. After realizing that manipulating a conceptual matrix of the data would be both inefficient as well as incomplete, we decided to represent the data with maps. By utilizing these data structures and looking for intersections between sets of the map keys, we managed to generate a full clique efficiently. 
 
-We still ran into several difficulties during our revised approach, particularly involving host selection. In order to ensure that a 
-team was not a host two nights in a row, we made a list of the teams who hosted the night before. Then, when picking a new host for 
-the current night, the new host could not be in the previous host list. However, there were still incorrect host selections, so we
-overcame this issue by picking a host from the _guestQueue_ if one existed, but if one did not exist then we selected a _previousHost_
-host that is not a current host. 
+We discovered other difficulties during our revised approach, particularly involving host selection. In order to ensure that a team was not a host two nights in a row, we made a list of the teams who hosted the night before. Then, when picking a new host for the current night, the new host could not be in the previous host list. However, there were still incorrect host selections, so we overcame this  issue by selecting a host from _previousHost_ as necessary as long as that host was not a current host. 
 
-Another issue we ran into was assigning couples to groups that already had the ideal size filled, while not making any of the groups
-too unbalanced. We prevailed over this difficulty by utilizing a _guestQueue_ and placing the couples that would cause a group to 
-overflow into this queue. Then the next group to be filled would have this couple placed into their group before adding any other 
-guests. If all groups had the ideal size filled but there were still guests left to assign, then the leftover couple(s) were added to
-a group first with the other individual(s) then assigned to the group(s) with the smallest number of guests.
-
+Another issue we ran into was assigning couples to groups that already had the ideal size filled, while not making any of the groups too unbalanced. We prevailed over this difficulty by implementing a 'catch-all' that would iteratively distribute any unassigned  guests to the smallest group, starting with any unassigned couples.
 
 ### The following are the set of sets created by our program for each file:
 
