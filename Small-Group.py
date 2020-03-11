@@ -5,9 +5,9 @@
 #              home in the minimum number of nights as possible with a
 #              time complexity of O(n^3).
 # Contributors: Elizabeth Myers and Chandler Stevens
-# Last Updated: 3/10/2020
-# GitHub Classroom Private Repository:
-#     https://github.com/csc3430-winter2020/community-small-groups-palpateam
+# Last Updated: 3/11/2020
+# GitHub Repository:
+#     https://github.com/chandler-stevens/Small-Groups-Algorithm
 #
 # Empiric runtime performance of each data file with m = 4 with animation:
 # group1.txt runtime = 33 seconds

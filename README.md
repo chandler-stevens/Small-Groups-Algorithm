@@ -3,6 +3,13 @@
 
 **CSC 3430: Algorithm Analysis and Design**
 
+## Table of Contents  
+- [Introduction](https://github.com/csc3430-winter2020/community-small-groups-palpateam#introduction)
+- [Description](https://github.com/csc3430-winter2020/community-small-groups-palpateam#description)
+- [Requirements](https://github.com/csc3430-winter2020/community-small-groups-palpateam#requirements)
+- [User Manual](https://github.com/csc3430-winter2020/community-small-groups-palpateam#user-manual)
+- [Reflection](https://github.com/csc3430-winter2020/community-small-groups-palpateam#reflection)
+
 ## Introduction
 
 The following information describes our algorithm for allocating church members to small groups. We begin with a description of the problem that we are solving, along with several constraints. Then, we describe the software and package requirements needed to run our program. Next, we provide a user manual that explains how to launch and use the program with example screenshots and a YouTube video tutorial. We include a reflection of the steps we took to determine the ideal algorithm and subsequently the implementation of our algorithm as well as the time complexities of each. We also discuss the challenges we overcame during development. Finally, we include example outputs for each of the three text files provided in this repository. 
@@ -39,6 +46,12 @@ a. Type and enter "y" to display the graph animation or "n" to **not** display t
 6. Then, the program will immediately begin the algorithm while displaying its progress.
 7. Finally, once the program has completed, the set of sets of each group for each night will be displayed.
 
+### The following is a link to a YouTube video tutorial:
+
+_The video walks through the installation process and shows a demo of our program running._
+
+https://youtu.be/KTWziXdUNFM
+
 ### The following are screenshots of our program running:
 
 _Click an image to view a close-up, scrollable version._
@@ -54,11 +67,6 @@ _Click an image to view a close-up, scrollable version._
 #### group3.txt with m = 4:
 
 ![Group3](/screenshots/Screenshot-group3-4.png)
-
-
-### The following is a link to a YouTube video of our program running:
-
-https://youtu.be/KTWziXdUNFM
 
 
 ## Reflection
