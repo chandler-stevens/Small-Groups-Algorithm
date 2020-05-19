@@ -4,11 +4,11 @@
 **CSC 3430: Algorithm Analysis and Design**
 
 ## Table of Contents  
-- [Introduction](https://github.com/csc3430-winter2020/community-small-groups-palpateam#introduction)
-- [Description](https://github.com/csc3430-winter2020/community-small-groups-palpateam#description)
-- [Requirements](https://github.com/csc3430-winter2020/community-small-groups-palpateam#requirements)
-- [User Manual](https://github.com/csc3430-winter2020/community-small-groups-palpateam#user-manual)
-- [Reflection](https://github.com/csc3430-winter2020/community-small-groups-palpateam#reflection)
+- [Introduction](https://github.com/chandler-stevens/Small-Groups-Algorithm#introduction)
+- [Description](https://github.com/chandler-stevens/Small-Groups-Algorithm#description)
+- [Requirements](https://github.com/chandler-stevens/Small-Groups-Algorithm#requirements)
+- [User Manual](https://github.com/chandler-stevens/Small-Groups-Algorithm#user-manual)
+- [Reflection](https://github.com/chandler-stevens/Small-Groups-Algorithm#reflection)
 
 ## Introduction
 
